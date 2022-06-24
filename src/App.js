@@ -21,6 +21,10 @@ export default function App() {
 		endTime: 0,
 	});
 
+	const date = new Date();
+
+	console.log(date.getSeconds());
+
 	function generateNewDie() {
 		return {
 			value: Math.floor(Math.random() * 6 + 1),
