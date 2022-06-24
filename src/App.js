@@ -4,6 +4,23 @@ import { nanoid } from 'nanoid';
 import Confetti from 'react-confetti';
 
 export default function App() {
+	const [currentScore, setCurrentScore] = useState({
+		rolls: 0,
+		time: 0,
+	});
+
+	const [topScore, setTopScore] = useState(
+		JSON.parse(localStorage.getItem('topScore')) || {
+			rolls: 0,
+			time: 0,
+		}
+	);
+
+	const [time, setTime] = useState({
+		startTme: 0,
+		endTime: 0,
+	});
+
 	function generateNewDie() {
 		return {
 			value: Math.floor(Math.random() * 6 + 1),
@@ -38,6 +55,10 @@ export default function App() {
 				return die.isHeld ? die : generateNewDie();
 			})
 		);
+		setCurrentScore((oldScore) => ({
+			...oldScore,
+			rolls: oldScore.rolls + 1,
+		}));
 	}
 
 	function holdDice(id) {
@@ -63,7 +84,23 @@ export default function App() {
 	function newGame() {
 		setTenzies(false);
 		setDice(allNewDice());
+		setCurrentScore({
+			rolls: 0,
+			time: 0,
+		});
 	}
+
+	useEffect(() => {
+		if (
+			currentScore.rolls !== 0 &&
+			(topScore.rolls > currentScore.rolls || topScore.rolls === 0)
+		)
+			setTopScore((prevTopScore) => ({
+				...prevTopScore,
+				rolls: currentScore.rolls,
+			}));
+		localStorage.setItem('topScore', JSON.stringify(topScore));
+	}, [tenzies]);
 
 	return (
 		<main>
@@ -77,6 +114,16 @@ export default function App() {
 			<button onClick={tenzies ? newGame : rollDice} className="roll">
 				{tenzies ? 'New Game' : 'Roll'}
 			</button>
+			<div className="score">
+				<div className="roll-score">
+					<p>Current rolls: {currentScore.rolls}</p>
+					<p>Top score: {topScore.rolls}</p>
+				</div>
+				<div className="time-score">
+					<p>Current time: {currentScore.time}</p>
+					<p>Top time: {topScore.time}</p>
+				</div>
+			</div>
 		</main>
 	);
 }
