@@ -16,14 +16,13 @@ export default function App() {
 		}
 	);
 
-	const [time, setTime] = useState({
-		startTme: 0,
-		endTime: 0,
-	});
+	const [timerOngoing, setTimerOngoing] = useState(null);
 
-	const date = new Date();
+	const [dice, setDice] = useState(allNewDice());
 
-	console.log(date.getSeconds());
+	const [tenzies, setTenzies] = useState(false);
+
+	function timer() {}
 
 	function generateNewDie() {
 		return {
@@ -40,8 +39,6 @@ export default function App() {
 		}
 		return diceArray;
 	}
-
-	const [dice, setDice] = useState(allNewDice());
 
 	const diceElements = dice.map((die) => (
 		<Die
@@ -74,8 +71,16 @@ export default function App() {
 		);
 	}
 
-	const [tenzies, setTenzies] = useState(false);
+	function tick() {
+		if (!tenzies) {
+			setCurrentScore((prevScore) => ({
+				...prevScore,
+				time: prevScore.time + 1,
+			}));
+		}
+	}
 
+	//Win condition
 	useEffect(() => {
 		let checkDie = dice[0].value;
 		for (let die of dice) {
@@ -85,6 +90,29 @@ export default function App() {
 		setTenzies(true);
 	}, [dice]);
 
+	//Start timer and update top score
+	useEffect(() => {
+		if (!timerOngoing) {
+			setTimerOngoing(setInterval(tick, 1000));
+		}
+		if (tenzies) {
+			clearInterval(timerOngoing);
+			setTimerOngoing(null);
+			setTopScore((prevTopScore) => ({
+				time:
+					prevTopScore.time === 0 || prevTopScore.time > currentScore.time
+						? currentScore.time
+						: prevTopScore.time,
+				rolls:
+					prevTopScore.rolls === 0 || prevTopScore.rolls > currentScore.rolls
+						? currentScore.rolls
+						: prevTopScore.rolls,
+			}));
+
+			localStorage.setItem('topScore', JSON.stringify(topScore));
+		}
+	}, [tenzies]);
+
 	function newGame() {
 		setTenzies(false);
 		setDice(allNewDice());
@@ -93,18 +121,6 @@ export default function App() {
 			time: 0,
 		});
 	}
-
-	useEffect(() => {
-		if (
-			currentScore.rolls !== 0 &&
-			(topScore.rolls > currentScore.rolls || topScore.rolls === 0)
-		)
-			setTopScore((prevTopScore) => ({
-				...prevTopScore,
-				rolls: currentScore.rolls,
-			}));
-		localStorage.setItem('topScore', JSON.stringify(topScore));
-	}, [tenzies]);
 
 	return (
 		<main>
